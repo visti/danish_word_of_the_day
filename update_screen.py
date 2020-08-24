@@ -19,15 +19,17 @@ danish, english = word_of_the_day.get_word()
 danish_word = unicode(danish[0], 'utf-8')
 danish_sent = unicode(danish[1], 'utf-8')
 
+lastline=0
+
 inky_display = InkyWHAT("red")
 inky_display.set_border(inky_display.RED)
 
 img = Image.new("P", (inky_display.WIDTH, inky_display.HEIGHT))
 draw = ImageDraw.Draw(img)
 
-fontsize = 300
+fontsize = 100
 
-fontsizesmall = 300
+fontsizesmall = 100
 
 font1 = ImageFont.truetype("/home/pi/.fonts/Bebas.ttf", fontsize, encoding="utf-8")
 font1eng = ImageFont.truetype("/home/pi/.fonts/Bebas.ttf", fontsize, encoding="utf-8")
@@ -51,6 +53,21 @@ def get_font_size(font, text):
 
     return font
 
+def get_last_line(line):
+    for lines in range(line, inky_display.HEIGHT, 1):
+        empty_line = []
+        for x in range(0, inky_display.WIDTH, 1):
+            pixel = img.getpixel((x, lines))
+            empty_line.append(pixel)
+        if 0 not in empty_line:
+            lastline = lines
+            break
+        if lines == 300:
+            lastline = 292
+    return lastline
+
+
+
 debug ("Calculating size of Danish header")
 font1 = get_font_size(font1, danish_word)
 
@@ -64,8 +81,8 @@ debug ("Calculating size of English sentence")
 font2eng = get_font_size(font2eng, english[1])
 
 debug ("Calculating items on screen")
-draw.text((((inky_display.WIDTH/2)-(font1.word_width/2), 0)), danish_word, inky_display.BLACK, font=font1)
-draw.text((((inky_display.WIDTH/2)-(font1eng.word_width/2)),font1.word_height+2), english[0], inky_display.RED, font=font1eng)
+draw.text((((inky_display.WIDTH/2)-(font1.word_width/2), -8)), danish_word, inky_display.BLACK, font=font1)
+draw.text((((inky_display.WIDTH/2)-(font1eng.word_width/2), font1.word_height-8)), english[0], inky_display.RED, font=font1eng)
 
 box_start = (font1.word_height+font1eng.word_height+8)
 
@@ -74,17 +91,13 @@ draw.rectangle((0, box_start, inky_display.WIDTH, inky_display.HEIGHT), inky_dis
 draw.text((((inky_display.WIDTH/2)-(font2.word_width/2)), font1.word_height+font1eng.word_height+10), danish_sent, inky_display.WHITE, font=font2)
 draw.text((((inky_display.WIDTH/2)-(font2eng.word_width/2)), font1.word_height+font1eng.word_height+font2eng.word_height+10), english[1], inky_display.WHITE, font=font2eng)
 
-box2_start = (font1.word_height+font1eng.word_height+font2eng.word_height+font2eng.word_height)
+
 
 debug ("Finding last empty line")
-for lines in range(box2_start, inky_display.HEIGHT, 1):
-    empty_line = []
-    for x in range(0, inky_display.WIDTH, 1):
-        pixel = img.getpixel((x, lines))
-        empty_line.append(pixel)
-    if 0 not in empty_line:
-        lastline = lines
-        break
+box2_start = (font1.word_height+font1eng.word_height+font2eng.word_height+font2eng.word_height)
+
+lastline = get_last_line(box2_start)
+
 
 # Draw last red box
 draw.rectangle((0, lastline+8, inky_display.WIDTH, inky_display.HEIGHT), inky_display.RED)
